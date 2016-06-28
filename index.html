@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+//constants
+var _WIDTH = 1024;
+var _HEIGHT = 600;
+
+var ctx;
+
+var playerTank;
+var terrainPts;
+
+function startGame() {
+    myGameArea.start();
+    playerTank = new tank(30, 30, "red", 20, 120);
+    myTerrain = new terrain("green");
+}
+
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+
+        //initialise the canvas
+        this.canvas.width = _WIDTH;
+        this.canvas.height = _HEIGHT;
+        this.context = this.canvas.getContext("2d");
+        ctx = this.context;
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.interval = setInterval(updateGameArea, 20);
+
+        //listen for keypresses
+        window.addEventListener('keydown', function (e) {
+            myGameArea.key = e.keyCode;
+        })
+        window.addEventListener('keyup', function (e) {
+            myGameArea.key = false;
+        })
+    },
+    clear : function(){
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function terrain(color){
+    //generate the terrain. simple alg atm
+    var points = [];
+
+    procTerr(points, 0, _WIDTH, 300, 500, 40);
+    this.pts = points;
+
+    this.fill = function(){
+        for (var i = 0; i < this.pts.length; i++) {
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.moveTo(i, this.pts[i]);
+          ctx.lineTo(i, _HEIGHT);
+          ctx.stroke();
+        }
+    }
+}
+
+function procTerr(points, leftX, rightX, leftY, rightY, deviation){
+    //get the X of the center point
+    var center = (leftX + rightX) / 2;
+    //get the new midpoint: average of left and right + or - deviation
+    var newPt = (leftY + rightY) / 2;
+    var dev = Math.floor((Math.random() * deviation) + 1);
+
+    //add in fun random things
+    if (Math.random() * 100 < 5){
+      dev *= 10;
+    }
+    if (Math.random() * 10 < 5) {
+      dev *= -1;
+    }
+
+    newPt += dev;
+    points[center] = newPt;
+
+    var resolution = 32; //must be a multiple of width
+    if (rightX - leftX == resolution){
+        terrFill(points, leftX, rightX);
+
+        //fill in the first 32 x values because it gets missed annoyingly
+        var gap = (leftY - points[resolution]) / resolution;
+        for (var i = 0; i < resolution; i++) {
+          points[i] = leftY - (i * gap);
+        }
+        //fill in the last 32 x values
+        gap = (rightY - points[_WIDTH - resolution]) / resolution;
+        for (var i = _WIDTH; i > _WIDTH - resolution; i--) {
+          points[i] = rightY - (i * gap);
+        }
+        return;
+    }
+    //fill in the left
+    procTerr(points, leftX, center, leftY, newPt, deviation);
+    //fill in the right
+    procTerr(points, center, rightX, rightY, newPt, deviation);
+
+    return points;
+}
+
+function terrFill(points, leftX, rightX){
+    var midPt = (leftX + rightX) / 2;
+    var midY = (points[leftX] + points[rightX]) / 2;
+
+    points[midPt] = midY;
+
+    if (rightX - leftX == 1){
+      return;
+    }
+    terrFill(points, leftX, midPt);
+    terrFill(points, midPt, rightX);
+}
+
+
+//    _______          _
+//   |__   __|        | |
+//      | | __ _ _ __ | | __
+//      | |/ _` | '_ \| |/ /
+//      | | (_| | | | |   <
+//      |_|\__,_|_| |_|_|\_\
+//
+//
+function tank(width, height, color, x, y) {
+    this.gamearea = myGameArea;
+    this.width = width;
+    this.height = height;
+
+    this.image = new Image();
+    this.image.src = "tank-chute.png";
+
+    //velocity - how fast is the tank going
+    this.velX = 0;
+    this.velY = 0;
+
+    //speed - how fast the tank can go
+    this.speed = 1;
+
+    //location - the tank point is the centre of the bottom
+    this.x = x;
+    this.y = y;
+
+    //gravity
+    this.gravity = 0.1;
+    this.gravitySpeed = 0;
+
+    this.shoot = function(){
+        bomb = new projectile(this.x , this.y, 30, -10, 10);
+    }
+
+    this.update = function() {
+        ctx = myGameArea.context;
+
+        ctx.drawImage(this.image, this.x - this.width / 2, this.y - this.image.height, this.image.width, this.image.height);
+    }
+    this.newPos = function() {
+        this.gravitySpeed += this.gravity;
+        this.x += this.velX;
+        this.y += this.velY + this.gravitySpeed;
+        if (this.hitBottom() == false){
+            this.image.src = "tank-chute.png";
+        }
+        this.outOfBounds();
+    }
+    //detect collision with the ground
+    this.hitBottom = function() {
+        var rockbottom = myTerrain.pts[this.x];
+        if (this.y > rockbottom) {
+            this.y = rockbottom;
+
+            //pick the sprite
+            if (this.velX > 0){
+                this.image.src = "tank-right.png";
+            }
+            else if (this.velX < 0){
+                this.image.src = "tank-left.png";
+            }
+        }
+        else this.image.src = "tank-chute.png";
+    }
+    this.outOfBounds = function(){
+        if (this.x < 2){
+          this.x = 2;
+        }
+    }
+}
+
+function projectile(posX, posY, velX, velY, mass) {
+    this.gamearea = myGameArea;
+
+    //velocity
+    this.velX = velX;
+    this.velY = velY;
+
+    //location
+    this.x = posX;
+    this.y = posY;
+
+    //sprite
+    this.image = new Image();
+    this.image.src = "bomb.png";
+
+    //gravity
+    this.gravity = mass / 10;
+    this.gravitySpeed = 0;
+
+    this.update = function() {
+        ctx.drawImage(this.image, this.x, this.y, this.image.height, this.image.width);
+    }
+    this.newPos = function(){
+        this.gravitySpeed += this.gravity;
+        this.x += this.velX;
+        this.y += this.velY + this.gravitySpeed;
+        this.hitBottom();
+    }
+    //detect collision with the ground
+    this.hitBottom = function() {
+        var rockbottom = myTerrain.pts[this.x];
+        if (this.y > rockbottom) {
+            this.y = rockbottom;
+            this.velX = 0;
+        }
+    }
+}
+
+function updateGameArea() {
+    myGameArea.clear();
+
+    //reset velocities
+    playerTank.velX = 0;
+    playerTank.velY = 0;
+
+    //process keys
+    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
+    if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed; }
+    if (myGameArea.key && myGameArea.key == 32) {playerTank.shoot(); }
+
+    //draw the terrain
+    myTerrain.fill();
+
+    //update player position
+    playerTank.newPos();
+    playerTank.update();
+
+    bomb.newPos();
+    bomb.update();
+}
+
+function angleInc() {
+
+}
+
+function angleDec(){
+
+}
+</script>
+<div>
+    <button onclick="angleInc()">Angle +</button>
+    <button onclick="angleDec()">Angle -</button>
+</div>
+
+</body>
+</html>
