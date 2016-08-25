@@ -140,7 +140,7 @@ function tank(width, height, color, x, y) {
     this.height = height;
 
     this.image = new Image();
-    this.image.src = "tank-chute.png";
+    this.image.src = "images/tank-chute.png";
 
     //velocity - how fast is the tank going
     this.velX = 0;
@@ -157,10 +157,6 @@ function tank(width, height, color, x, y) {
     this.gravity = 0.1;
     this.gravitySpeed = 0;
 
-    this.shoot = function(){
-        bomb = new projectile(this.x , this.y, 30, -10, 10);
-    }
-
     this.update = function() {
         ctx = myGameArea.context;
 
@@ -171,7 +167,7 @@ function tank(width, height, color, x, y) {
         this.x += this.velX;
         this.y += this.velY + this.gravitySpeed;
         if (this.hitBottom() == false){
-            this.image.src = "tank-chute.png";
+            this.image.src = "images/tank-chute.png";
         }
         this.outOfBounds();
     }
@@ -183,13 +179,13 @@ function tank(width, height, color, x, y) {
 
             //pick the sprite
             if (this.velX > 0){
-                this.image.src = "tank-right.png";
+                this.image.src = "images/tank-right.png";
             }
             else if (this.velX < 0){
-                this.image.src = "tank-left.png";
+                this.image.src = "images/tank-left.png";
             }
         }
-        else this.image.src = "tank-chute.png";
+        else this.image.src = "images/tank-chute.png";
     }
     this.outOfBounds = function(){
         if (this.x < 2){
@@ -198,26 +194,30 @@ function tank(width, height, color, x, y) {
     }
 }
 
-function projectile(posX, posY, velX, velY, mass) {
+//creates a new projectile
+//Args: Initial x position, inital y position
+//		Horisontal and vertical speed.
+//		Mass of the projectile. Heavier projectiles will fall faster.
+function projectile(tank, velX, velY, mass) {
     this.gamearea = myGameArea;
 
     //velocity
     this.velX = velX;
-    this.velY = velY;
+    this.velY = velY * -1;
 
     //location
-    this.x = posX;
-    this.y = posY;
+    this.x = tank.x;
+    this.y = tank.y;
 
     //sprite
     this.image = new Image();
-    this.image.src = "bomb.png";
+    this.image.src = "images/bomb.png";
 
     //gravity
     this.gravity = mass / 10;
     this.gravitySpeed = 0;
 
-    this.update = function() {
+    this.draw = function() {
         ctx.drawImage(this.image, this.x, this.y, this.image.height, this.image.width);
     }
     this.newPos = function(){
@@ -236,6 +236,8 @@ function projectile(posX, posY, velX, velY, mass) {
     }
 }
 
+
+var pArray = []
 function updateGameArea() {
     myGameArea.clear();
 
@@ -246,7 +248,11 @@ function updateGameArea() {
     //process keys
     if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
     if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed; }
-    if (myGameArea.key && myGameArea.key == 32) {playerTank.shoot(); }
+
+	//Handle projectiles
+    if (myGameArea.key && myGameArea.key == 32) {
+		pArray.push(new projectile(playerTank, 20, 20, 10))
+	}
 
     //draw the terrain
     myTerrain.fill();
@@ -255,8 +261,11 @@ function updateGameArea() {
     playerTank.newPos();
     playerTank.update();
 
-    bomb.newPos();
-    bomb.update();
+	for (var i = 0; i < pArray.length; i++) {
+		pArray[i].newPos()
+		pArray[i].draw()
+	}
+
 }
 
 function angleInc() {
