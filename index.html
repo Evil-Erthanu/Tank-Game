@@ -274,13 +274,11 @@ function projectile(tank, velX, velY, mass) {
 var pArray = []
 
 //Store the shoot cooldown
-let _projectileDelay = 100
+let _projectileDelay = 10
 var cooldown = _projectileDelay
 
 
 function updateGameArea() {
-
-	//console.log(lastProjectileMade)
 
     myGameArea.clear();
 
@@ -296,10 +294,12 @@ function updateGameArea() {
     if (myGameArea.key && myGameArea.key == 32) {
 		if (cooldown > _projectileDelay) {
 
-			pArray.push(new projectile(playerTank, 10, 10, 20))
+			pArray.push(new projectile(playerTank, 10, 2, 2))
 			cooldown = 0
 		}
 	}
+
+	updateProjectiles()
 
     //draw the terrain
     myTerrain.fill();
@@ -307,13 +307,25 @@ function updateGameArea() {
     //update player position
     playerTank.newPos();
     playerTank.update();
+	
+	cooldown++
+}
 
+function updateProjectiles(){
 	//Update all of the projectiles and draw them
+	var allDone = true
 	for (var i = 0; i < pArray.length; i++) {
+
+		if (pArray[i].done == false){
+			allDone = false;
+		}
+
 		pArray[i].newPos()
 		pArray[i].draw()
 	}
-	cooldown++
+	if (allDone == true){
+		pArray = []
+	}
 }
 
 function angleInc() {
