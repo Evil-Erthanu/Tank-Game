@@ -62,6 +62,15 @@ var myGameArea = {
     }
 }
 
+//    _______                  _
+//   |__   __|                (_)
+//      | | ___ _ __ _ __ __ _ _ _ __
+//      | |/ _ \ '__| '__/ _` | | '_ \
+//      | |  __/ |  | | | (_| | | | | |
+//      |_|\___|_|  |_|  \__,_|_|_| |_|
+//
+//
+
 function terrain(color){
     //generate the terrain. simple alg atm
     var points = [];
@@ -134,6 +143,19 @@ function terrFill(points, leftX, rightX){
     }
     terrFill(points, leftX, midPt);
     terrFill(points, midPt, rightX);
+}
+
+function destroy(point, craterSize) {
+
+	var startPoint = point - craterSize
+	let endPoint = point + craterSize
+
+	for (var i = -craterSize/2; i < craterSize/2; i++){
+		myTerrain.pts[startPoint + i] += craterSize
+	}
+
+
+
 }
 
 
@@ -256,6 +278,7 @@ function projectile(tank, velX, velY, mass) {
         if (this.y > rockbottom) {
             this.y = rockbottom;
             this.velX = 0;
+			destroy(this.x, 30)
 			this.done = true;
         }
     }
@@ -287,8 +310,8 @@ function updateGameArea() {
     playerTank.velY = 0;
 
     //process keys
-    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
-    if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed; }
+    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1 }
+    if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed }
 
 	//Handle projectiles
     if (myGameArea.key && myGameArea.key == 32) {
@@ -299,20 +322,25 @@ function updateGameArea() {
 		}
 	}
 
+	if (myGameArea.key && myGameArea.key == 83) { destroy(100, 10) }
+
+
+
+	//Update all of the projectiles and draw them
 	updateProjectiles()
 
     //draw the terrain
-    myTerrain.fill();
+    myTerrain.fill()
 
     //update player position
-    playerTank.newPos();
-    playerTank.update();
-	
+    playerTank.newPos()
+    playerTank.update()
+
 	cooldown++
 }
 
 function updateProjectiles(){
-	//Update all of the projectiles and draw them
+
 	var allDone = true
 	for (var i = 0; i < pArray.length; i++) {
 
