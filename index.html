@@ -14,6 +14,8 @@ canvas {
 	<div>
 	    <button onclick="angleInc()">Angle +</button>
 	    <button onclick="angleDec()">Angle -</button>
+		<button onclick="exportMap()">Export map</button><br/>
+		<textarea id="output" wrap="hard" rows="10" cols="30"></textarea>
 	</div>
 
 	</body>
@@ -145,16 +147,32 @@ function terrFill(points, leftX, rightX){
     terrFill(points, midPt, rightX);
 }
 
+//A recursive solution would be better
 function destroy(point, craterSize) {
 
 	var startPoint = point - craterSize
 	let endPoint = point + craterSize
+	var height = []
 
-	for (var i = -craterSize/2; i < craterSize/2; i++){
-		myTerrain.pts[startPoint + i] += craterSize
+	var j = 0
+	for (var i = point - craterSize; i <= point + craterSize; i++){
+		var tmp = Math.sqrt((craterSize * craterSize) - (i * i))
+		height.push(tmp)
 	}
 
-
+	for (var i = 0; i < height.length; i++){
+		myTerrain.pts[point - craterSize + i] += height[i]
+	}
+}
+//document.getElementById("output").innerHTML += ("" + myTerrain.pts[i]).substring(0, 3) + ", "
+function exportMap() {
+	var avg = 0
+	//calculate the average terrain height
+	for (var i = 0; i < myTerrain.pts.length; i++){
+		avg += myTerrain.pts[i]
+	}
+	avg = Math.round(avg / myTerrain.pts.length)
+	console.log("Average: " + avg)
 
 }
 
@@ -278,7 +296,7 @@ function projectile(tank, velX, velY, mass) {
         if (this.y > rockbottom) {
             this.y = rockbottom;
             this.velX = 0;
-			destroy(this.x, 30)
+			destroy(this.x, 10)
 			this.done = true;
         }
     }
