@@ -150,29 +150,29 @@ function terrFill(points, leftX, rightX){
 //A recursive solution would be better
 function destroy(point, craterSize) {
 
-	var startPoint = point - craterSize
-	let endPoint = point + craterSize
-	var height = []
+	var startPoint = point - craterSize;
+	let endPoint = point + craterSize;
+	var height = [];
 
-	var j = 0
+	var j = 0;
 	for (var i = point - craterSize; i <= point + craterSize; i++){
-		var tmp = Math.sqrt((craterSize * craterSize) - (i * i))
-		height.push(tmp)
+		var tmp = Math.sqrt((craterSize * craterSize) - (i * i));
+		height.push(tmp);
 	}
 
 	for (var i = 0; i < height.length; i++){
-		myTerrain.pts[point - craterSize + i] += height[i]
+		myTerrain.pts[point - craterSize + i] += height[i];
 	}
 }
 //document.getElementById("output").innerHTML += ("" + myTerrain.pts[i]).substring(0, 3) + ", "
 function exportMap() {
-	var avg = 0
+	var avg = 0;
 	//calculate the average terrain height
 	for (var i = 0; i < myTerrain.pts.length; i++){
-		avg += myTerrain.pts[i]
+		avg += myTerrain.pts[i];
 	}
-	avg = Math.round(avg / myTerrain.pts.length)
-	console.log("Average: " + avg)
+	avg = Math.round(avg / myTerrain.pts.length);
+	console.log("Average: " + avg);
 
 }
 
@@ -296,7 +296,7 @@ function projectile(tank, velX, velY, mass) {
         if (this.y > rockbottom) {
             this.y = rockbottom;
             this.velX = 0;
-			destroy(this.x, 10)
+			destroy(this.x, 10);
 			this.done = true;
         }
     }
@@ -312,11 +312,11 @@ function projectile(tank, velX, velY, mass) {
 //                                                   |_|
 
 //Stores the projectiles
-var pArray = []
+var pArray = [];
 
 //Store the shoot cooldown
-let _projectileDelay = 10
-var cooldown = _projectileDelay
+let _projectileDelay = 10;
+var cooldown = _projectileDelay;
 
 
 function updateGameArea() {
@@ -328,49 +328,48 @@ function updateGameArea() {
     playerTank.velY = 0;
 
     //process keys
-    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1 }
-    if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed }
+    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
+    if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed; }
 
 	//Handle projectiles
     if (myGameArea.key && myGameArea.key == 32) {
 		if (cooldown > _projectileDelay) {
-
-			pArray.push(new projectile(playerTank, 10, 2, 2))
-			cooldown = 0
+			pArray.push(new projectile(playerTank, 10, 2, 2));
+			cooldown = 0;
 		}
 	}
 
-	if (myGameArea.key && myGameArea.key == 83) { destroy(100, 10) }
+	if (myGameArea.key && myGameArea.key == 83) { destroy(100, 10); }
 
 
 
 	//Update all of the projectiles and draw them
-	updateProjectiles()
+	updateProjectiles();
 
     //draw the terrain
-    myTerrain.fill()
+    myTerrain.fill();
 
     //update player position
-    playerTank.newPos()
-    playerTank.update()
+    playerTank.newPos();
+    playerTank.update();
 
-	cooldown++
+	cooldown++;
 }
 
 function updateProjectiles(){
 
-	var allDone = true
+	var allDone = true;
 	for (var i = 0; i < pArray.length; i++) {
 
 		if (pArray[i].done == false){
 			allDone = false;
 		}
 
-		pArray[i].newPos()
-		pArray[i].draw()
+		pArray[i].newPos();
+		pArray[i].draw();
 	}
 	if (allDone == true){
-		pArray = []
+		pArray = [];
 	}
 }
 
