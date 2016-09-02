@@ -15,7 +15,7 @@ canvas {
 	    <button onclick="angleInc()">Angle +</button>
 	    <button onclick="angleDec()">Angle -</button>
 		<button onclick="exportMap()">Export map</button><br/>
-		<textarea id="output" wrap="hard" rows="10" cols="30"></textarea>
+		<textarea id="output" wrap="hard" rows="10" cols="30" title="outputArea"></textarea>
 	</div>
 
 	</body>
@@ -24,19 +24,18 @@ canvas {
 <script>
 
 //Canvas width and height
-let _WIDTH = 1024;
-let _HEIGHT = 600;
+var _WIDTH = 1024;
+var _HEIGHT = 600;
 
 //The context
 var ctx;
 
 var playerTank;
-var terrainPts;
 
 function startGame() {
     myGameArea.start();
-    playerTank = new tank(30, 30, "red", 20, 120);
-    myTerrain = new terrain("green");
+    playerTank = new Tank(30, 30, "red", 20, 120);
+    myTerrain = new Terrain("green");
 }
 
 var myGameArea = {
@@ -73,8 +72,8 @@ var myGameArea = {
 //
 //
 
-function terrain(color){
-    //generate the terrain. simple alg atm
+function Terrain(color){
+    //generate the Terrain. simple alg atm
     var points = [];
 
     procTerr(points, 0, _WIDTH, 300, 500, 40);
@@ -151,7 +150,7 @@ function terrFill(points, leftX, rightX){
 function destroy(point, craterSize) {
 
 	var startPoint = point - craterSize;
-	let endPoint = point + craterSize;
+	var endPoint = point + craterSize;
 	var height = [];
 
 	var j = 0;
@@ -167,7 +166,7 @@ function destroy(point, craterSize) {
 //document.getElementById("output").innerHTML += ("" + myTerrain.pts[i]).substring(0, 3) + ", "
 function exportMap() {
 	var avg = 0;
-	//calculate the average terrain height
+	//calculate the average Terrain height
 	for (var i = 0; i < myTerrain.pts.length; i++){
 		avg += myTerrain.pts[i];
 	}
@@ -185,22 +184,22 @@ function exportMap() {
 //      |_|\__,_|_| |_|_|\_\
 //
 //
-function tank(width, height, color, x, y) {
+function Tank(width, height, color, x, y) {
     this.gamearea = myGameArea;
     this.width = width;
     this.height = height;
 
     this.image = new Image();
-    this.image.src = "images/tank-chute.png";
+    this.image.src = "images/Tank-chute.png";
 
-    //velocity - how fast is the tank going
+    //velocity - how fast is the Tank going
     this.velX = 0;
     this.velY = 0;
 
-    //speed - how fast the tank can go
+    //speed - how fast the Tank can go
     this.speed = 1;
 
-    //location - the tank point is the centre of the bottom
+    //location - the Tank point is the centre of the bottom
     this.x = x;
     this.y = y;
 
@@ -218,7 +217,7 @@ function tank(width, height, color, x, y) {
         this.x += this.velX;
         this.y += this.velY + this.gravitySpeed;
         if (this.hitBottom() == false){
-            this.image.src = "images/tank-chute.png";
+            this.image.src = "images/Tank-chute.png";
         }
         this.outOfBounds();
     }
@@ -230,13 +229,13 @@ function tank(width, height, color, x, y) {
 
             //pick the sprite
             if (this.velX > 0){
-                this.image.src = "images/tank-right.png";
+                this.image.src = "images/Tank-right.png";
             }
             else if (this.velX < 0){
-                this.image.src = "images/tank-left.png";
+                this.image.src = "images/Tank-left.png";
             }
         }
-        else this.image.src = "images/tank-chute.png";
+        else this.image.src = "images/Tank-chute.png";
     }
     this.outOfBounds = function(){
         if (this.x < 2){
@@ -255,14 +254,13 @@ function tank(width, height, color, x, y) {
 //                  _/ |
 //                 |__/
 
-//creates a new projectile
+//creates a new Projectile
 //Args: Initial x position, inital y position
-//		Horisontal and vertical speed.
-//		Mass of the projectile. Heavier projectiles will fall faster.
-function projectile(tank, velX, velY, mass) {
-    this.gamearea = myGameArea;
+//		Horrisontal and vertical speed.
+//		Mass of the Projectile. Heavier projectiles will fall faster.
+function Projectile(tank, velX, velY, mass) {
 
-	//Store whether the projectile has landed
+	//Store whether the Projectile has landed
 	this.done = false;
 
     //velocity
@@ -283,13 +281,13 @@ function projectile(tank, velX, velY, mass) {
 
     this.draw = function() {
         ctx.drawImage(this.image, this.x, this.y, this.image.height, this.image.width);
-    }
+    };
     this.newPos = function(){
         this.gravitySpeed += this.gravity;
         this.x += this.velX;
         this.y += this.velY + this.gravitySpeed;
         this.hitBottom();
-    }
+    };
     //detect collision with the ground
     this.hitBottom = function() {
         var rockbottom = myTerrain.pts[this.x];
@@ -299,7 +297,7 @@ function projectile(tank, velX, velY, mass) {
 			destroy(this.x, 10);
 			this.done = true;
         }
-    }
+    };
 }
 
 //     _____                        _
@@ -315,7 +313,7 @@ function projectile(tank, velX, velY, mass) {
 var pArray = [];
 
 //Store the shoot cooldown
-let _projectileDelay = 10;
+var _projectileDelay = 10;
 var cooldown = _projectileDelay;
 
 
@@ -334,7 +332,7 @@ function updateGameArea() {
 	//Handle projectiles
     if (myGameArea.key && myGameArea.key == 32) {
 		if (cooldown > _projectileDelay) {
-			pArray.push(new projectile(playerTank, 10, 2, 2));
+			pArray.push(new Projectile(playerTank, 10, 2, 2));
 			cooldown = 0;
 		}
 	}
@@ -346,7 +344,7 @@ function updateGameArea() {
 	//Update all of the projectiles and draw them
 	updateProjectiles();
 
-    //draw the terrain
+    //draw the Terrain
     myTerrain.fill();
 
     //update player position
@@ -371,6 +369,10 @@ function updateProjectiles(){
 	if (allDone == true){
 		pArray = [];
 	}
+}
+
+function testShoot(velX, velY){
+	pArray.push(new Projectile(playerTank, velX, velY, 2));
 }
 
 function angleInc() {
