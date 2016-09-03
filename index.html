@@ -149,18 +149,11 @@ function terrFill(points, leftX, rightX){
 //A recursive solution would be better
 function destroy(point, craterSize) {
 
-	var startPoint = point - craterSize;
-	var endPoint = point + craterSize;
-	var height = [];
+	var craterStart = point -craterSize/2
+	var craterEnd = point + craterSize/2
 
-	var j = 0;
-	for (var i = point - craterSize; i <= point + craterSize; i++){
-		var tmp = Math.sqrt((craterSize * craterSize) - (i * i));
-		height.push(tmp);
-	}
-
-	for (var i = 0; i < height.length; i++){
-		myTerrain.pts[point - craterSize + i] += height[i];
+	for (var i = craterStart; i < craterEnd; i++){
+		myTerrain.pts[i] += craterSize;
 	}
 }
 //document.getElementById("output").innerHTML += ("" + myTerrain.pts[i]).substring(0, 3) + ", "
