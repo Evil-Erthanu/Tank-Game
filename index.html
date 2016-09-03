@@ -269,7 +269,7 @@ function Projectile(tank, velX, velY, mass) {
 
     //location
     this.x = tank.x;
-    this.y = tank.y;
+    this.y = tank.y - 10;
 
     //sprite
     this.image = new Image();
@@ -332,7 +332,7 @@ function updateGameArea() {
 	//Handle projectiles
     if (myGameArea.key && myGameArea.key == 32) {
 		if (cooldown > _projectileDelay) {
-			pArray.push(new Projectile(playerTank, 10, 2, 2));
+			pArray.push(new Projectile(playerTank, 10, 10, 6));
 			cooldown = 0;
 		}
 	}
@@ -350,6 +350,15 @@ function updateGameArea() {
     //update player position
     playerTank.newPos();
     playerTank.update();
+
+
+	var curveStartX = playerTank.x;
+	var curveStartY = playerTank.y - 10;
+
+	ctx.moveTo(curveStartX, curveStartY);
+	ctx.quadraticCurveTo(curveStartX + 100, curveStartY -100, curveStartX + 200, curveStartY);
+	ctx.stroke();
+
 
 	cooldown++;
 }
@@ -373,6 +382,7 @@ function updateProjectiles(){
 
 function testShoot(velX, velY){
 	pArray.push(new Projectile(playerTank, velX, velY, 2));
+
 }
 
 function angleInc() {
