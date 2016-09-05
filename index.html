@@ -15,7 +15,9 @@ canvas {
 	    <button onclick="angleInc()">Angle +</button>
 	    <button onclick="angleDec()">Angle -</button>
 		<button onclick="exportMap()">Export map</button><br/>
-		<textarea id="output" wrap="hard" rows="10" cols="30" title="outputArea"></textarea>
+		<textarea id="output" wrap="hard" rows="10" cols="30" title="outputArea"></textarea><br/>
+		<p id="speed"></p>
+		<p id="location"></p>
 	</div>
 
 	</body>
@@ -130,6 +132,11 @@ function procTerr(points, leftX, rightX, leftY, rightY, deviation){
     //fill in the right
     procTerr(points, center, rightX, rightY, newPt, deviation);
 
+	//Make all of the points in the terrain clean whole numbers
+	for (var i = 0; i < points.length; i++){
+		points[i] = Math.floor(points[i]);
+	}
+	
     return points;
 }
 
@@ -196,6 +203,8 @@ function Tank(width, height, color, x, y) {
     this.x = x;
     this.y = y;
 
+	let speedOut = document.getElementById("speed");
+	let locationOut = document.getElementById("location");
     //gravity
     this.gravity = 0.1;
     this.gravitySpeed = 0;
@@ -203,10 +212,24 @@ function Tank(width, height, color, x, y) {
     this.update = function() {
         ctx = myGameArea.context;
 
+
+		//Display some stats about the tank
+		speedOut.innerHTML = "Speed x = " + this.velX;
+		locationOut.innerHTML = "X = " + this.x + " Y = " +  this.y;
+
         ctx.drawImage(this.image, this.x - this.width / 2, this.y - this.image.height, this.image.width, this.image.height);
     }
     this.newPos = function() {
         this.gravitySpeed += this.gravity;
+
+		//Make the tank go slower up hills
+		if (this.velX > 0 && myTerrain.pts[this.x + 1] < this.y - 1){
+				this.velX *= 0.5;
+		}
+		else if (this.velX < 0 && myTerrain.pts[this.x - 1] < this.y - 1){
+				this.velX *= 0.5;
+		}
+
         this.x += this.velX;
         this.y += this.velY + this.gravitySpeed;
         if (this.hitBottom() == false){
@@ -319,7 +342,8 @@ function updateGameArea() {
     playerTank.velY = 0;
 
     //process keys
-    if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
+    //if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
+	if (myGameArea.key && myGameArea.key == 37) {playerTank.velX = playerTank.speed * -1; }
     if (myGameArea.key && myGameArea.key == 39) {playerTank.velX = playerTank.speed; }
 
 	//Handle projectiles
